@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-const appName = chalk.inverse("EC2 Utils ");
+const appName = chalk.inverse("ECS Utils ");
 
 export declare type LogExtra = "APPEND" | "WILL_APPEND" | undefined
 

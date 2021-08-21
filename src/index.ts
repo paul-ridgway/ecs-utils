@@ -2,7 +2,7 @@
 
 import inquirer from "inquirer";
 import { info } from "./utils/logger";
-import { getClient } from "./utils/ec2-client-provider";
+import { getClient } from "./utils/ecs-client-provider";
 import { Action } from "./functions/functions";
 import autocomplete from 'inquirer-autocomplete-prompt';
 import fuzzy from 'fuzzy';

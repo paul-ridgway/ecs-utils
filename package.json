@@ -4,8 +4,8 @@
   "description": "A little utility to quickly manage ECS Clusters, Services and Tasks from the command line",
   "main": "lib/index.js",
   "bin": {
-    "ec2-utils": "./lib/index.js",
-    "ec2utils": "./lib/index.js"
+    "ecs-utils": "./lib/index.js",
+    "ecsutils": "./lib/index.js"
   },
   "scripts": {
     "start": "ts-node-dev --respawn --debug --transpile-only src/index.ts",
@@ -22,7 +22,7 @@
     "url": "git+ssh://git@github.com/paul-ridgway/ecs-utils.git"
   },
   "keywords": [
-    "ec2",
+    "ecs",
     "utilities"
   ],
   "author": "Paul Ridgway",

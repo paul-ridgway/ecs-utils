@@ -1,3 +1,3 @@
-# ec2-utils
+# ecs-utils
 
 TODO: this readme!
