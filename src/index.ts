@@ -3,9 +3,12 @@
 import inquirer from "inquirer";
 import { info } from "./utils/logger";
 import { getClient } from "./utils/ecs-client-provider";
-import { Action } from "./functions/functions";
+import { Action } from "./functions/action";
 import autocomplete from 'inquirer-autocomplete-prompt';
 import fuzzy from 'fuzzy';
+import { Execute } from "./functions/execute";
+import { DescribeClustersCommand, DescribeTasksCommand, ListClustersCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
+import { inspect } from "util";
 // TODO: Profile select
 // TODO: Properly handle regions?
 
@@ -52,7 +55,7 @@ inquirer.registerPrompt('autocomplete', autocomplete);
 //   return prompt.instance;
 // }
 
-async function selectAction(): Promise<Action> {
+async function selectAction() {
   const prompt = await inquirer
     .prompt([{
       type: 'list',
@@ -60,16 +63,74 @@ async function selectAction(): Promise<Action> {
       loop: false,
       message: 'What do you want to do?',
       choices: [
-        { name: 'Execute Command', value: undefined },
+        { name: 'Execute Command', value: Execute },
       ],
     },
     ]);
   return prompt.action;
 }
 
+declare type InstanceEntry = { name: string, value: string; };
+async function getCluster(): Promise<string> {
+  info("Fetching cluster list...");
+  const cmd = new ListClustersCommand({ maxResults: 100 });
+  const clusters = await getClient().send(cmd);
+  const clusterList: InstanceEntry[] = clusters.clusterArns?.map((arn) => ({ name: arn.split('/')[1], value: arn })) || [];
+  const prompt = await inquirer
+    .prompt([
+      {
+        type: 'autocomplete',
+        name: 'instance',
+        message: 'Select a cluster (type to filter)',
+        source: (_: any, input: string): Promise<InstanceEntry[]> => {
+          input = input || "";
+          return new Promise((res): void => {
+            const results = fuzzy.filter<InstanceEntry>(input, clusterList, { extract: (e): string => e.name });
+            return res(results.map((e): InstanceEntry => e.original));
+          });
+        }
+      }]);
+  console.log("prompt", prompt);
+  return prompt.instance;
+}
+
+async function getTask(clusterArn: string): Promise<string> {
+  info("Fetching task list...");
+  const cmd = new ListTasksCommand({cluster: clusterArn});
+  const tasks = await getClient().send(cmd);
+  const taskDetails = await getClient().send(new DescribeTasksCommand({cluster: clusterArn, tasks: tasks.taskArns}));
+  console.log(tasks);
+  console.log(JSON.stringify(taskDetails, null, 2));
+  
+
+  // const clusterList: InstanceEntry[] = clusters.clusterArns?.map((arn) => ({ name: arn.split('/')[1], value: arn })) || [];
+  // const prompt = await inquirer
+  //   .prompt([
+  //     {
+  //       type: 'autocomplete',
+  //       name: 'instance',
+  //       message: 'Select a cluster (type to filter)',
+  //       source: (_: any, input: string): Promise<InstanceEntry[]> => {
+  //         input = input || "";
+  //         return new Promise((res): void => {
+  //           const results = fuzzy.filter<InstanceEntry>(input, clusterList, { extract: (e): string => e.name });
+  //           return res(results.map((e): InstanceEntry => e.original));
+  //         });
+  //       }
+  //     }]);
+  // console.log("prompt", prompt);
+
+  return "";
+}
+
+function getService(): string {
+  return "";
+}
+
 async function run(): Promise<void> {
-  const action = await selectAction();
-  // await action(instance);
+  const Act = await selectAction();
+  const act: Action = new Act(getCluster, getService, getTask);
+  await act.run();
 }
 
 run()
