@@ -9,3 +9,4 @@ TODO: this readme!
 - Look for running task
 - Execute command
 - Ability to view/terminate active sessions
+- Move to eslint

@@ -13,7 +13,7 @@ export async function getTask(clusterArn: string): Promise<TaskContainer> {
   const tasks = await getClient().send(cmd);
   const taskDetails = await getClient().send(new DescribeTasksCommand({ cluster: clusterArn, tasks: tasks.taskArns }));
 
-  const taskList: TaskEntry[] = (taskDetails.tasks|| []).map((task) => (task.containers || []).map((cont) => {
+  const taskList: TaskEntry[] = (taskDetails.tasks|| []).map((task): TaskEntry[] => (task.containers || []).map((cont): TaskEntry => {
     return {
       name: `Task Definition: ${task.taskDefinitionArn?.split("/")[1]}, Container: ${cont.name} (${cont.lastStatus})`,
       value: {
@@ -37,6 +37,5 @@ export async function getTask(clusterArn: string): Promise<TaskContainer> {
           });
         }
       }]);
-  console.log(prompt);
   return prompt.instance;
 }

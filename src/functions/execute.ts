@@ -1,4 +1,3 @@
-import { ExecuteCommandCommand } from "@aws-sdk/client-ecs";
 import { spawn } from "child_process";
 import { getClient } from "../utils/ecs-client-provider";
 import { error, info } from "../utils/logger";
