@@ -15,7 +15,7 @@ export abstract class Action {
     if (!this._clusterArn) {
       this._clusterArn = await this._getClusterArn();
     }
-    
+
     return this._clusterArn;
   }
 
