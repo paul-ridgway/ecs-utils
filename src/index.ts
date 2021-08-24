@@ -7,7 +7,7 @@ import { Action } from "./functions/action";
 import autocomplete from 'inquirer-autocomplete-prompt';
 import fuzzy from 'fuzzy';
 import { Execute } from "./functions/execute";
-import { DescribeClustersCommand, DescribeTasksCommand, ListClustersCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
+import { DescribeClustersCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, ListClustersCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
 import { inspect } from "util";
 // TODO: Profile select
 // TODO: Properly handle regions?
@@ -94,31 +94,41 @@ async function getCluster(): Promise<string> {
   return prompt.instance;
 }
 
+declare type TaskEntry = { name: string, value: { taskArn: string, container: string}; };
 async function getTask(clusterArn: string): Promise<string> {
   info("Fetching task list...");
-  const cmd = new ListTasksCommand({cluster: clusterArn});
+  const cmd = new ListTasksCommand({ cluster: clusterArn });
   const tasks = await getClient().send(cmd);
-  const taskDetails = await getClient().send(new DescribeTasksCommand({cluster: clusterArn, tasks: tasks.taskArns}));
+  const taskDetails = await getClient().send(new DescribeTasksCommand({ cluster: clusterArn, tasks: tasks.taskArns }));
   console.log(tasks);
   console.log(JSON.stringify(taskDetails, null, 2));
-  
 
-  // const clusterList: InstanceEntry[] = clusters.clusterArns?.map((arn) => ({ name: arn.split('/')[1], value: arn })) || [];
-  // const prompt = await inquirer
-  //   .prompt([
-  //     {
-  //       type: 'autocomplete',
-  //       name: 'instance',
-  //       message: 'Select a cluster (type to filter)',
-  //       source: (_: any, input: string): Promise<InstanceEntry[]> => {
-  //         input = input || "";
-  //         return new Promise((res): void => {
-  //           const results = fuzzy.filter<InstanceEntry>(input, clusterList, { extract: (e): string => e.name });
-  //           return res(results.map((e): InstanceEntry => e.original));
-  //         });
-  //       }
-  //     }]);
-  // console.log("prompt", prompt);
+  const taskList: TaskEntry[] = (taskDetails.tasks|| []).map((task) => (task.containers || []).map((cont) => {
+    return {
+      name: `${task.taskDefinitionArn?.split("/")[1]}, ${cont.name}`,
+      value: {
+        taskArn: task.taskArn!,
+        container: cont.name!
+      }
+    };
+  })).flat();
+  console.log(taskList);
+
+  const prompt = await inquirer
+    .prompt([
+      {
+        type: 'autocomplete',
+        name: 'instance',
+        message: 'Select a task and container (type to filter)',
+        source: (_: any, input: string): Promise<TaskEntry[]> => {
+          input = input || "";
+          return new Promise((res): void => {
+            const results = fuzzy.filter<TaskEntry>(input, taskList, { extract: (e): string => e.name });
+            return res(results.map((e): TaskEntry => e.original));
+          });
+        }
+      }]);
+  console.log("prompt", prompt);
 
   return "";
 }
