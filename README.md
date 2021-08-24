@@ -8,3 +8,4 @@ TODO: this readme!
 - Ask for task if not set
 - Look for running task
 - Execute command
+- Ability to view/terminate active sessions

@@ -9,51 +9,11 @@ import fuzzy from 'fuzzy';
 import { Execute } from "./functions/execute";
 import { DescribeClustersCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, ListClustersCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
 import { inspect } from "util";
+import { getTask } from "./prompts/get-task";
 // TODO: Profile select
 // TODO: Properly handle regions?
 
 inquirer.registerPrompt('autocomplete', autocomplete);
-
-// declare type InstanceEntry = { name: string, value: string; };
-
-// async function selectInstance(): Promise<string> {
-//   const client = getClient();
-//   info("Fetching instance list...");
-//   // TODO: Iterate over tokens
-//   const cmd = new DescribeInstancesCommand({ MaxResults: 1000 });
-//   const reservations = await client.send(cmd);
-//   const instances = reservations.Reservations!.map((r): Instance[] => r.Instances ?? []).flat();
-//   const statuses = await client.send(new DescribeInstanceStatusCommand({ InstanceIds: instances.filter((i): boolean => !!i.InstanceId).map((i): string => i.InstanceId!) }));
-//   const instanceList: InstanceEntry[] = [];
-//   instances.forEach((i): void => {
-//     const tags = i.Tags ?? [];
-//     const name = tags
-//       .filter((t): boolean => t.Key?.toLocaleLowerCase() === "name")
-//       .map((t): string => t.Value ?? "")
-//       .join(' ');
-//     const status = statuses.InstanceStatuses?.filter((s): boolean => s.InstanceId === i.InstanceId)[0];
-//     instanceList.push({
-//       name: `Instance: ${i.InstanceId} - ${name} - ${status?.SystemStatus?.Status} / ${status?.InstanceStatus?.Status}`,
-//       value: i.InstanceId!
-//     });
-//   });
-
-//   const prompt = await inquirer
-//     .prompt([
-//       {
-//         type: 'autocomplete',
-//         name: 'instance',
-//         message: 'Select an instance (type to filter)',
-//         source: (_: any, input: string): Promise<InstanceEntry[]> => {
-//           input = input || "";
-//           return new Promise((res): void => {
-//             const results = fuzzy.filter<InstanceEntry>(input, instanceList, { extract: (e): string => e.name });
-//             return res(results.map((e): InstanceEntry => e.original));
-//           });
-//         }
-//       }]);
-//   return prompt.instance;
-// }
 
 async function selectAction() {
   const prompt = await inquirer
@@ -70,68 +30,30 @@ async function selectAction() {
   return prompt.action;
 }
 
-declare type InstanceEntry = { name: string, value: string; };
+declare type ClusterEntry = { name: string, value: string; };
 async function getCluster(): Promise<string> {
   info("Fetching cluster list...");
   const cmd = new ListClustersCommand({ maxResults: 100 });
   const clusters = await getClient().send(cmd);
-  const clusterList: InstanceEntry[] = clusters.clusterArns?.map((arn) => ({ name: arn.split('/')[1], value: arn })) || [];
+  const clusterList: ClusterEntry[] = clusters.clusterArns?.map((arn) => ({ name: arn.split('/')[1], value: arn })) || [];
   const prompt = await inquirer
     .prompt([
       {
         type: 'autocomplete',
         name: 'instance',
         message: 'Select a cluster (type to filter)',
-        source: (_: any, input: string): Promise<InstanceEntry[]> => {
+        source: (_: any, input: string): Promise<ClusterEntry[]> => {
           input = input || "";
           return new Promise((res): void => {
-            const results = fuzzy.filter<InstanceEntry>(input, clusterList, { extract: (e): string => e.name });
-            return res(results.map((e): InstanceEntry => e.original));
+            const results = fuzzy.filter<ClusterEntry>(input, clusterList, { extract: (e): string => e.name });
+            return res(results.map((e): ClusterEntry => e.original));
           });
         }
       }]);
-  console.log("prompt", prompt);
   return prompt.instance;
 }
 
-declare type TaskEntry = { name: string, value: { taskArn: string, container: string}; };
-async function getTask(clusterArn: string): Promise<string> {
-  info("Fetching task list...");
-  const cmd = new ListTasksCommand({ cluster: clusterArn });
-  const tasks = await getClient().send(cmd);
-  const taskDetails = await getClient().send(new DescribeTasksCommand({ cluster: clusterArn, tasks: tasks.taskArns }));
-  console.log(tasks);
-  console.log(JSON.stringify(taskDetails, null, 2));
-
-  const taskList: TaskEntry[] = (taskDetails.tasks|| []).map((task) => (task.containers || []).map((cont) => {
-    return {
-      name: `${task.taskDefinitionArn?.split("/")[1]}, ${cont.name}`,
-      value: {
-        taskArn: task.taskArn!,
-        container: cont.name!
-      }
-    };
-  })).flat();
-  console.log(taskList);
-
-  const prompt = await inquirer
-    .prompt([
-      {
-        type: 'autocomplete',
-        name: 'instance',
-        message: 'Select a task and container (type to filter)',
-        source: (_: any, input: string): Promise<TaskEntry[]> => {
-          input = input || "";
-          return new Promise((res): void => {
-            const results = fuzzy.filter<TaskEntry>(input, taskList, { extract: (e): string => e.name });
-            return res(results.map((e): TaskEntry => e.original));
-          });
-        }
-      }]);
-  console.log("prompt", prompt);
-
-  return "";
-}
+// TODO: Move these to function files
 
 function getService(): string {
   return "";

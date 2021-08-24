@@ -1,5 +1,7 @@
+import { TaskContainer } from "../prompts/get-task";
+
 type ClusterFn = () => Promise<string>;
-type TaskFn = (clusterArn: string) => Promise<string>;
+type TaskFn = (clusterArn: string) => Promise<TaskContainer>;
 
 export abstract class Action {
 
@@ -21,7 +23,7 @@ export abstract class Action {
     return this._getServiceId();
   }
 
-  public async getTask(): Promise<string> {
+  public async getTask(): Promise<TaskContainer> {
     return this._getTaskArn(await this.getClusterArn())
   }
 
