@@ -1,19 +1,18 @@
-import { DescribeClustersCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, ListClustersCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
+import { DescribeTaskDefinitionCommand, DescribeTasksCommand, ListTaskDefinitionsCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
 import { getClient } from "../utils/ecs-client-provider";
 import { info } from "../utils/logger";
 import inquirer from "inquirer";
 import fuzzy from 'fuzzy';
 
-export declare type TaskContainer = { taskArn: string, container: string};
+export declare type TaskContainer = { taskArn: string, container: string; };
 export declare type TaskEntry = { name: string, value: TaskContainer; };
 
-export async function getTask(clusterArn: string): Promise<TaskContainer> {
-  info("Fetching task list...");
-  const cmd = new ListTasksCommand({ cluster: clusterArn });
-  const tasks = await getClient().send(cmd);
-  const taskDetails = await getClient().send(new DescribeTasksCommand({ cluster: clusterArn, tasks: tasks.taskArns }));
-
-  const taskList: TaskEntry[] = (taskDetails.tasks|| []).map((task): TaskEntry[] => (task.containers || []).map((cont): TaskEntry => {
+export async function getTaskDefinition(): Promise<TaskContainer> {
+  info("Fetching task definition list...");
+  const client = getClient();
+  const taskDefinitionArns = await client.send(new ListTaskDefinitionsCommand({}));
+  const taskDefinitions = taskDefinitionArns.taskDefinitionArns?.map((arn) => await client.send(new DescribeTaskDefinitionCommand({ taskDefinition: arn })));
+  const taskList: TaskEntry[] = (taskDetails.tasks || []).map((task): TaskEntry[] => (task.containers || []).map((cont): TaskEntry => {
     return {
       name: `Task Definition: ${task.taskDefinitionArn?.split("/")[1]}, Container: ${cont.name} (${cont.lastStatus})`,
       value: {
