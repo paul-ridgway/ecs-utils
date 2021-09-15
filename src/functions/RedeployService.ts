@@ -21,6 +21,9 @@ export class RedeployService extends Action {
 
 }
 
-function extractTaskDefinitionFamily(arn?: string) {
-  return (arn || "").split('/')[1].split(':')[0];
+function extractTaskDefinitionFamily(arn?: string): string | undefined {
+  if (!arn) {
+    return;
+  }
+  return arn.split('/')[1].split(':')[0];
 }

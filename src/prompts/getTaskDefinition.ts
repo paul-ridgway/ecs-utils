@@ -1,4 +1,4 @@
-import { DescribeTaskDefinitionCommand, DescribeTaskDefinitionCommandOutput, DescribeTasksCommand, ListTaskDefinitionsCommand, ListTasksCommand, TaskDefinition } from "@aws-sdk/client-ecs";
+import { ListTaskDefinitionsCommand } from "@aws-sdk/client-ecs";
 import { getClient } from "../utils/ecs-client-provider";
 import { info } from "../utils/logger";
 import inquirer from "inquirer";
@@ -19,7 +19,7 @@ export async function getTaskDefinition(familyPrefix: string | undefined): Promi
   const taskDefinitionArns = await client.send(new ListTaskDefinitionsCommand({ familyPrefix }));
   const taskDefinitions = markLatest((taskDefinitionArns.taskDefinitionArns || [])
     .map(extractDetails)
-    .sort((a, b) => b.revision - a.revision));
+    .sort((a, b): number => b.revision - a.revision));
 
   const taskList: TaskEntry[] = taskDefinitions.map((cont): TaskEntry => {
     return {
@@ -47,7 +47,7 @@ export async function getTaskDefinition(familyPrefix: string | undefined): Promi
 
 function markLatest(defs: TaskDefinitionSummary[]): TaskDefinitionSummary[] {
   const latests: Record<string, TaskDefinitionSummary> = {};
-  defs.forEach((def) => {
+  defs.forEach((def): void => {
     const current = latests[def.name];
     if (!current || def.revision > current.revision) {
       latests[def.name] = def;
@@ -67,6 +67,6 @@ function extractDetails(arn: string): TaskDefinitionSummary {
   return {
     arn,
     name: def[0],
-    revision: parseInt(def[1])
+    revision: parseInt(def[1], 10)
   };
 }

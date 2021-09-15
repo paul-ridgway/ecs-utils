@@ -8,10 +8,6 @@ export abstract class Action {
 
   private _clusterArn: string = '';
 
-  public constructor() {
-
-  }
-
   public async getClusterArn(): Promise<string> {
     if (!this._clusterArn) {
       this._clusterArn = await getCluster();
