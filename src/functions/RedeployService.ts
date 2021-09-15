@@ -6,11 +6,21 @@ import { Action } from "./Action";
 export class RedeployService extends Action {
 
   async run(): Promise<void> {
-    const ecs = getClient();
     const cluster = await this.getClusterArn();
     const service = await this.getService();
-    new UpdateServiceCommand({service: service, taskDefinition: taskDefinition})
+    const taskDefinition = await this.getTaskDefinition(extractTaskDefinitionFamily(service.taskDefinition));
+    // TODO: Ask to 'just deploy latest'
+    // TODO: Ask force deployment
+    const cmd = new UpdateServiceCommand({cluster, service: service.serviceArn!, taskDefinition: taskDefinition.arn, forceNewDeployment: true})
+    const res = await getClient().send(cmd)
+    info("Service update command sent successfully");
+
+    // TODO: Monitor for deployment done
     return Promise.resolve();
   }
 
+}
+
+function extractTaskDefinitionFamily(arn?: string) {
+  return (arn || "").split('/')[1].split(':')[0];
 }

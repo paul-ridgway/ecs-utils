@@ -1,26 +1,32 @@
-import { DescribeTaskDefinitionCommand, DescribeTasksCommand, ListTaskDefinitionsCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
+import { DescribeTaskDefinitionCommand, DescribeTaskDefinitionCommandOutput, DescribeTasksCommand, ListTaskDefinitionsCommand, ListTasksCommand, TaskDefinition } from "@aws-sdk/client-ecs";
 import { getClient } from "../utils/ecs-client-provider";
 import { info } from "../utils/logger";
 import inquirer from "inquirer";
 import fuzzy from 'fuzzy';
 
-export declare type TaskContainer = { taskArn: string, container: string; };
-export declare type TaskEntry = { name: string, value: TaskContainer; };
+export declare type TaskDefinitionSummary = {
+  name: string,
+  arn: string,
+  revision: number;
+  latest?: boolean;
+};
+export declare type TaskEntry = { name: string, value: TaskDefinitionSummary; };
 
-export async function getTaskDefinition(): Promise<TaskContainer> {
+export async function getTaskDefinition(familyPrefix: string | undefined): Promise<TaskDefinitionSummary> {
   info("Fetching task definition list...");
   const client = getClient();
-  const taskDefinitionArns = await client.send(new ListTaskDefinitionsCommand({}));
-  const taskDefinitions = taskDefinitionArns.taskDefinitionArns?.map((arn) => await client.send(new DescribeTaskDefinitionCommand({ taskDefinition: arn })));
-  const taskList: TaskEntry[] = (taskDetails.tasks || []).map((task): TaskEntry[] => (task.containers || []).map((cont): TaskEntry => {
+  // TODO: Handle pagination in reponses
+  const taskDefinitionArns = await client.send(new ListTaskDefinitionsCommand({ familyPrefix }));
+  const taskDefinitions = markLatest((taskDefinitionArns.taskDefinitionArns || [])
+    .map(extractDetails)
+    .sort((a, b) => b.revision - a.revision));
+
+  const taskList: TaskEntry[] = taskDefinitions.map((cont): TaskEntry => {
     return {
-      name: `Task Definition: ${task.taskDefinitionArn?.split("/")[1]}, Container: ${cont.name} (${cont.lastStatus})`,
-      value: {
-        taskArn: task.taskArn!,
-        container: cont.name!
-      }
+      name: `${cont.name} (${cont.revision})${cont.latest ? ' [LATEST]' : ''}`,
+      value: cont
     };
-  })).flat();
+  });
 
   const prompt = await inquirer
     .prompt([
@@ -37,4 +43,30 @@ export async function getTaskDefinition(): Promise<TaskContainer> {
         }
       }]);
   return prompt.instance;
+}
+
+function markLatest(defs: TaskDefinitionSummary[]): TaskDefinitionSummary[] {
+  const latests: Record<string, TaskDefinitionSummary> = {};
+  defs.forEach((def) => {
+    const current = latests[def.name];
+    if (!current || def.revision > current.revision) {
+      latests[def.name] = def;
+    }
+  });
+  for (const entry in latests) {
+    if (Object.prototype.hasOwnProperty.call(latests, entry)) {
+      const element = latests[entry];
+      element.latest = true;
+    }
+  }
+  return defs;
+}
+
+function extractDetails(arn: string): TaskDefinitionSummary {
+  const def = arn.split('/')[1].split(':');
+  return {
+    arn,
+    name: def[0],
+    revision: parseInt(def[1])
+  };
 }

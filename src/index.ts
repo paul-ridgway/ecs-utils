@@ -4,10 +4,10 @@ import inquirer from "inquirer";
 import { Action } from "./functions/Action";
 import autocomplete from 'inquirer-autocomplete-prompt';
 import { Execute } from "./functions/Execute";
-import { getTask } from "./prompts/get-task";
+import { getTask } from "./prompts/getTask";
 import { getCluster } from "./prompts/getCluster";
 import { RedeployService } from "./functions/RedeployService";
-import { getService } from "./prompts/get";
+import { getService } from "./prompts/getService";
 // TODO: Profile select
 // TODO: Properly handle regions?
 

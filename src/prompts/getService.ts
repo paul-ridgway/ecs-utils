@@ -1,4 +1,4 @@
-import { DescribeServicesCommand, DescribeTasksCommand, ListServicesCommand, ListTasksCommand, Service } from "@aws-sdk/client-ecs";
+import { DescribeServicesCommand, ListServicesCommand, Service } from "@aws-sdk/client-ecs";
 import { getClient } from "../utils/ecs-client-provider";
 import { info } from "../utils/logger";
 import inquirer from "inquirer";

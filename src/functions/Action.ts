@@ -1,7 +1,8 @@
 import { Service } from "@aws-sdk/client-ecs";
 import { getCluster } from "../prompts/getCluster";
-import { getService } from "../prompts/get";
-import { getTask, TaskContainer } from "../prompts/get-task";
+import { getService } from "../prompts/getService";
+import { getTask, TaskContainer } from "../prompts/getTask";
+import { getTaskDefinition, TaskDefinitionSummary } from "../prompts/getTaskDefinition";
 
 export abstract class Action {
 
@@ -27,8 +28,8 @@ export abstract class Action {
     return getTask(await this.getClusterArn());
   }
 
-  public async getTaskDefinition(): Promise<string> {
-    return getTaskDefinition(await this.getClusterArn())
+  public async getTaskDefinition(familyPrefix?: string): Promise<TaskDefinitionSummary> {
+    return getTaskDefinition(familyPrefix);
   }
 
   abstract run(): Promise<void>;
