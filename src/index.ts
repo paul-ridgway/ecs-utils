@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 import inquirer from "inquirer";
-import { Action } from "./functions/action";
+import { Action } from "./functions/Action";
 import autocomplete from 'inquirer-autocomplete-prompt';
-import { Execute } from "./functions/execute";
-import { getTask } from "./prompts/get-task";
-import { getCluster } from "./prompts/get-cluster";
+import { Execute } from "./functions/Execute";
+import { getTask } from "./prompts/getTask";
+import { getCluster } from "./prompts/getCluster";
+import { RedeployService } from "./functions/RedeployService";
+import { getService } from "./prompts/getService";
 // TODO: Profile select
 // TODO: Properly handle regions?
 
@@ -20,15 +22,11 @@ async function selectAction(): Promise<any> {
       message: 'What do you want to do?',
       choices: [
         { name: 'Execute Command', value: Execute },
+        { name: 'Re-deploy Service', value: RedeployService },
       ],
     },
     ]);
   return prompt.action;
-}
-// TODO: Move these to function files
-
-function getService(): string {
-  return "";
 }
 
 async function run(): Promise<void> {

@@ -1,4 +1,4 @@
-import { DescribeClustersCommand, DescribeTaskDefinitionCommand, DescribeTasksCommand, ListClustersCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
+import { DescribeTasksCommand, ListTasksCommand } from "@aws-sdk/client-ecs";
 import { getClient } from "../utils/ecs-client-provider";
 import { info } from "../utils/logger";
 import inquirer from "inquirer";

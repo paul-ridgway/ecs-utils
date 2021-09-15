@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import { getClient } from "../utils/ecs-client-provider";
 import { error, info } from "../utils/logger";
-import { Action } from "./action";
+import { Action } from "./Action";
 
 export class Execute extends Action {
 
