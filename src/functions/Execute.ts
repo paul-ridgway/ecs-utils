@@ -1,18 +1,22 @@
 import { spawn } from "child_process";
-import { getClient } from "../utils/ecs-client-provider";
+import inquirer from "inquirer";
 import { error, info } from "../utils/logger";
 import { Action } from "./Action";
 
 export class Execute extends Action {
 
   async run(): Promise<void> {
-    const ecs = getClient();
     const cluster = await this.getClusterArn();
     const task = await this.getTask();
-    // TODO: Ask command?
+    const askCommand = await inquirer.prompt({
+      type: "input",
+      name: "command",
+      message: "Command to run",
+      default: "/bin/sh",
+    })
     // TODO: Native shell in future using https://stackoverflow.com/questions/64195313/how-to-send-commands-to-aws-session-manager-websocket-url-using-xterm-js?
     // TODO: Pass through region
-    const args = ['ecs', 'execute-command', '--cluster', cluster, '--task', task.taskArn, '--container', task.container, '--command', '/bin/bash', '--interactive'];
+    const args = ['ecs', 'execute-command', '--cluster', cluster, '--task', task.taskArn, '--container', task.container, '--command', askCommand.command, '--interactive'];
     // For now this is a quick win
     // TODO: Check for AWS CLI, version and SSM plugin
     return new Promise<void>((res, rej): void => {
