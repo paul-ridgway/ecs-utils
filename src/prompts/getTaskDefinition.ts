@@ -15,9 +15,17 @@ export declare type TaskEntry = { name: string, value: TaskDefinitionSummary; };
 export async function getTaskDefinition(familyPrefix: string | undefined): Promise<TaskDefinitionSummary> {
   info("Fetching task definition list...");
   const client = getClient();
-  // TODO: Handle pagination in reponses
-  const taskDefinitionArns = await client.send(new ListTaskDefinitionsCommand({ familyPrefix }));
-  const taskDefinitions = markLatest((taskDefinitionArns.taskDefinitionArns || [])
+  const taskDefinitionArns = [];
+  let nextToken: string | undefined;
+  do {
+    const arns = await client.send(new ListTaskDefinitionsCommand({ familyPrefix, nextToken }));
+    nextToken = arns.nextToken;
+    if (arns.taskDefinitionArns) {
+      taskDefinitionArns.push(...arns.taskDefinitionArns);
+    }
+  } while(nextToken)
+
+  const taskDefinitions = markLatest((taskDefinitionArns || [])
     .map(extractDetails)
     .sort((a, b): number => b.revision - a.revision));
 
