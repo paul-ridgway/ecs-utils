@@ -22,13 +22,13 @@ export class Execute extends Action {
 
     // Trap ctrl-c and do not exit
     let last = 0;
-    process.on('SIGINT', () => {
+    process.on('SIGINT', (): void => {
       const now = Date.now();
       if (now - last < 1000) {
         process.exit();
       }
       last = now;
-    });    
+    });
 
     info("Note: Press ctrl-c twice within a second to exit, once to send to the container");
     await new Promise<void>((res, rej): void => {
@@ -37,7 +37,7 @@ export class Execute extends Action {
       shell.on('close', (code: number): void => { info(`Process terminated with code: ${code}`); res(); });
     });
 
-    // Remove trap 
+    // Remove trap
     process.removeAllListeners('SIGINT');
   }
 

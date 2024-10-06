@@ -14,11 +14,16 @@ import { ScaleService } from "./functions/ScaleService";
 
 inquirer.registerPrompt('autocomplete', autocomplete);
 
-const fns = [
+type FnOption = {
+  name: string;
+  value: new (...args: any[]) => Action;
+};
+
+const fns: FnOption[] = [
   { name: 'Execute Command', value: Execute },
   { name: 'Re-deploy Service', value: RedeployService },
   { name: 'Scale Service', value: ScaleService },
-].sort((a, b) => a.name.localeCompare(b.name));
+].sort((a: FnOption, b: FnOption): number => a.name.localeCompare(b.name));
 
 async function selectAction(): Promise<any> {
   const prompt = await inquirer
@@ -26,9 +31,9 @@ async function selectAction(): Promise<any> {
       type: 'autocomplete',
       name: 'action',
       message: 'What do you want to do?',
-      source: async (answersSoFar: any, input: string) => {
+      source: async (answersSoFar: any, input: string): Promise<any[]> => {
         input = input || '';
-        return fns.filter(fn => fn.name.toLowerCase().includes(input.toLowerCase()));
+        return fns.filter((fn): boolean => fn.name.toLowerCase().includes(input.toLowerCase()));
       },
     },
     ]);
