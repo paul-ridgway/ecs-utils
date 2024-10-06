@@ -1,6 +1,6 @@
 {
   "name": "ecs-utils",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A little utility to quickly manage ECS Clusters, Services and Tasks from the command line",
   "main": "lib/index.js",
   "bin": {
