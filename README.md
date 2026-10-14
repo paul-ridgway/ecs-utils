@@ -1,12 +1,7 @@
 # ecs-utils
 
-TODO: this readme!
+> **This npm package is retired.** ecs-utils has been rewritten as a native Go binary.
+> Download it from the [releases page](https://github.com/paul-ridgway/ecs-utils/releases/latest)
+> or run `go install github.com/paul-ridgway/ecs-utils@latest`, then `npm uninstall -g ecs-utils`.
 
-## TODO
-- Select profile if not defaulted
-- Ask for cluster if not set
-- Ask for task if not set
-- Look for running task
-- Execute command
-- Ability to view/terminate active sessions
-- Move to eslint
+The final npm release (1.3.0) only prints the instructions above and exits.
