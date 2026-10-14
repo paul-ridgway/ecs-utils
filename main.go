@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/paul-ridgway/ecs-utils/internal/actions"
 	"github.com/paul-ridgway/ecs-utils/internal/awsx"
@@ -42,7 +43,7 @@ func main() {
 	flag.Parse()
 
 	if showVersion {
-		fmt.Printf("ecs-utils %s (commit %s, built %s)\n", version, commit, date)
+		fmt.Println(versionString())
 		return
 	}
 
@@ -88,6 +89,17 @@ func selectAction() (actions.Action, error) {
 		options = append(options, ui.Option[actions.Action]{Label: action.Name(), Value: action})
 	}
 	return ui.Select("What do you want to do?", options)
+}
+
+// versionString prefers the values stamped in by the release build and falls
+// back to the module version Go records for "go install ...@version".
+func versionString() string {
+	if version == "dev" {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+			return fmt.Sprintf("ecs-utils %s", info.Main.Version)
+		}
+	}
+	return fmt.Sprintf("ecs-utils %s (commit %s, built %s)", version, commit, date)
 }
 
 func usage() {
