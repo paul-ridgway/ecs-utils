@@ -39,3 +39,7 @@ changelog:
     exclude:
       - "^docs:"
       - "^chore:"
+
+release:
+  # Overwrite assets already on the release (e.g. from a re-run) instead of failing with 422 already_exists.
+  replace_existing_artifacts: true
